@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do App</title>
+</head>
+<body>
+    <ul>
+        <!--iterate over the list of data we passed in from index(), displaying each item's info attribute-->
+        {% for d in data %}
+        <li>{{d.info}}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
