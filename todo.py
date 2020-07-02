@@ -15,6 +15,7 @@ class Todo(db.Model):
     __tablename__ = "todos" #overwrite default table name, which would be todo
     id = db.Column(db.Integer, primary_key=True)
     info = db.Column(db.String(), nullable=False)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
     
     #this just changes how objects display in interpreter, for debugging
     def __repr__(self):
