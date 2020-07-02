@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do App</title>
+    <title>To-Do List App</title>
 </head>
 <body>
+    <!--create new list item-->
+    <form action="/todos/create" method="POST">
+        <label for="info">Add New To-Do</label>
+        <input type="text" name="info">
+        <input type="submit" value="Create">
+    </form>
+
+    <!--display to do list-->
     <ul>
         <!--iterate over the list of data we passed in from index(), displaying each item's info attribute-->
         {% for d in data %}
-        <li>{{d.info}}</li>
+        <li>{{ d.info }}</li>
         {% endfor %}
     </ul>
 </body>

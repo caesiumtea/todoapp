@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -16,7 +16,17 @@ class Todo(db.Model):
 
 db.create_all()
 
+#route handler for when user creates a new todo
+@app.route("/todos/create", methods=["POST"])
+def create_todo():
+    newinfo = request.form.get("info", "")
+    newtodo = Todo(info=newinfo)
+    db.session.add(newtodo)
+    db.session.commit()
+    #redirects to the route handler named index and runs that one
+    return redirect(url_for("index"))
+
 #route handler for index (root) page of site
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html', data=Todo.query.all())
+    return render_template("index.html", data=Todo.query.all())    
