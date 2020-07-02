@@ -4,21 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do List App</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <!--create new list item-->
-    <form action="/todos/create" method="POST">
+    <form id="form">
         <label for="info">Add New To-Do</label>
-        <input type="text" name="info">
+        <input type="text" id="info" name="info">
         <input type="submit" value="Create">
     </form>
+    
+    <!--show error message if something goes wrong adding item-->
+    <div id="error" class="hidden">Problem creating new to-do item!</div>
 
     <!--display to do list-->
-    <ul>
+    <ul id="todos">
         <!--iterate over the list of data we passed in from index(), displaying each item's info attribute-->
         {% for d in data %}
         <li>{{ d.info }}</li>
         {% endfor %}
     </ul>
+
+    <!--retrieve data from form as JSON, append new item to UL above-->
+    <script>
+        document.getElementById('form').onsubmit = function(e) {
+            e.preventDefault();
+            // send data to the controller so it can add to database
+            fetch('/todos/create', {
+                method: 'POST',
+                body: JSON.stringify({
+                    'info': document.getElementById('info').value
+                }),
+                headers: {'Content-Type': 'application/json'}
+            })
+            // two part promise which takes data back from controller
+            // and uses it to update the view (ansynchronously)
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(jsonResponse) {
+                console.log(jsonResponse);
+                const liItem = document.createElement('li');
+                liItem.innerHTML = jsonResponse['info'];
+                document.getElementById('todos').appendChild(liItem);
+                document.getElementById('error').className = 'hidden';
+            })
+            // display the error from the div above if there's a server issue
+            .catch(function() {
+                document.getElementById('error').className = '';
+            })
+        }
+    </script>
 </body>
 </html>
