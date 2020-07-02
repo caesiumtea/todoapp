@@ -64,14 +64,27 @@
             .then(function(jsonResponse) {
                 console.log(jsonResponse);
                 const dataId = jsonResponse['id'];
+                //create checkbox for new todo item
                 const box = document.createElement('input');
                 box.className = 'check-completed';
                 box.setAttribute('data-id', dataId);
                 box.setAttribute('type', 'checkbox');
+                //create new todo item in view
                 const liItem = document.createElement('li');
-                liItem.innerHTML = jsonResponse['info'];
+                liItem.innerHTML = ' ' + jsonResponse['info'];
                 document.getElementById('todos').appendChild(liItem);
                 liItem.insertAdjacentElement('afterbegin', box)
+                //create listener for new todo item since the primary listener 
+                //below only runs when the page first loads
+                box.onchange = function(e) {
+                    console.log('event', e);
+                    const newCompleted = e.target.checked;
+                    fetch('/todos/' + dataId + '/set-complete', {
+                        method: 'POST',
+                        body: JSON.stringify({'completed': newCompleted}),
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                }
                 document.getElementById('error').className = 'hidden';
             })
             // display the error from the div above if there's a server issue
