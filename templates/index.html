@@ -10,6 +10,11 @@
         .hidden {
             display: none;
         }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -26,10 +31,15 @@
     <!--display current to-do list-->
     <ul id="todos">
         <!--iterate over the list of data we passed in from index(), 
-            displaying each item's info attribute.
+            displaying each item's status and info attribute and tagging
+            the list item with the object's id.
             this section uses Jinja2 syntax.-->
         {% for d in data %}
-        <li>{{ d.info }}</li>
+        <li>
+            <input class="check-completed" data-id="{{ d.id }}"
+                type="checkbox" {% if d.completed %} checked {% endif %}>
+            {{ d.info }}
+        </li>
         {% endfor %}
     </ul>
 
@@ -53,15 +63,43 @@
             })
             .then(function(jsonResponse) {
                 console.log(jsonResponse);
+                const dataId = jsonResponse['id'];
+                const box = document.createElement('input');
+                box.className = 'check-completed';
+                box.setAttribute('data-id', dataId);
+                box.setAttribute('type', 'checkbox');
                 const liItem = document.createElement('li');
                 liItem.innerHTML = jsonResponse['info'];
                 document.getElementById('todos').appendChild(liItem);
+                liItem.insertAdjacentElement('afterbegin', box)
                 document.getElementById('error').className = 'hidden';
             })
             // display the error from the div above if there's a server issue
             .catch(function() {
                 document.getElementById('error').className = '';
             })
+        }
+        // loop over checkbox elements, check for state changes,
+        // send new state into to controller
+        const checkboxes = document.querySelectorAll('.check-completed');
+        for (let i=0; i < checkboxes.length; i++) {
+            const checkbox = checkboxes[i];
+            checkbox.onchange = function(e) {
+                console.log('event', e);
+                const todoId = e.target.dataset['id'];
+                const newCompleted = e.target.checked;
+                fetch('/todos/' + todoId + '/set-complete', {
+                    method: 'POST',
+                    body: JSON.stringify({'completed': newCompleted}),
+                    headers: {'Content-Type': 'application/json'}
+                })
+                .then(function() {
+                document.getElementById('error').className = 'hidden';
+                })
+                .catch(function() {
+                document.getElementById('error').className = '';
+                })
+            }
         }
     </script>
 </body>
