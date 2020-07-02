@@ -1,26 +1,26 @@
 import sys
 from flask import Flask, render_template, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "postgresql://vance@localhost:5432/todoapp")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 #create a class to hold our todo objects and define what fields it will have
 class Todo(db.Model):
     __tablename__ = "todos" #overwrite default table name, which would be todo
     id = db.Column(db.Integer, primary_key=True)
     info = db.Column(db.String(), nullable=False)
-
+    
     #this just changes how objects display in interpreter, for debugging
     def __repr__(self):
         return f"<Todo {self.id}: {self.info}>"
 
-#add each model defined above to the database as table
-#remember that it does nothing if the table already exists
-db.create_all() 
+#no longer using db.create_all() here now that migrations are set up
 
 #route handler for index (root) page of site
 @app.route("/")
