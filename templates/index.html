@@ -71,6 +71,7 @@
                 }),
                 headers: {'Content-Type': 'application/json'}
             })
+
             // two part promise which takes data back from controller
             // and uses it to update the view (ansynchronously)
             .then(function(response) {
@@ -79,16 +80,26 @@
             .then(function(jsonResponse) {
                 console.log(jsonResponse);
                 const dataId = jsonResponse['id'];
-                //create checkbox for new todo item
+                const dataInfo = jsonResponse['info'];
+                const li = document.createElement('li');
+                
                 const box = document.createElement('input');
                 box.className = 'check-completed';
+                box.type = 'checkbox';
                 box.setAttribute('data-id', dataId);
-                box.setAttribute('type', 'checkbox');
-                //create new todo item in view
-                const liItem = document.createElement('li');
-                liItem.innerHTML = ' ' + jsonResponse['info'];
-                document.getElementById('todos').appendChild(liItem);
-                liItem.insertAdjacentElement('afterbegin', box)
+                li.appendChild(box);
+
+                const text = document.createTextNode(' ' + dataInfo);
+                li.appendChild(text);
+
+                const del = document.createElement('button');
+                del.className = 'delete-button';
+                del.setAttribute('data-id', dataId);
+                del.innerHTML = 'X';
+                li.appendChild(del);
+
+                document.getElementById('todos').appendChild(li);
+
                 //create listener for new todo item since the primary listener 
                 //below only runs when the page first loads
                 box.onchange = function(e) {
@@ -100,13 +111,38 @@
                         headers: {'Content-Type': 'application/json'}
                     })
                 }
+
+                //create listener for new todo item since the primary listener 
+                //below only runs when the page first loads
+                del.onclick = function(e) {
+                    console.log('event', e);
+                    const todoId = e.target.dataset['id'];
+                    fetch('/todos/' + todoId + '/delete', {method: 'DELETE'})
+                    .then(function() {
+                        e.target.parentElement.remove();
+                    })
+                }
                 document.getElementById('error').className = 'hidden';
-            })
+                })
             // display the error from the div above if there's a server issue
             .catch(function() {
                 document.getElementById('error').className = '';
             })
         }
+
+        ///// tried to make a single function that could be called from
+        ///// both the create action and the page listener but it didn't work
+        // function checkboxListen(e) {
+        //     console.log('event', e);
+        //     const todoId = e.target.dataset['id'];
+        //     const newCompleted = e.target.checked;
+        //     fetch('/todos/' + todoId + '/set-complete', {
+        //         method: 'POST',
+        //         body: JSON.stringify({'completed': newCompleted}),
+        //         headers: {'Content-Type': 'application/json'}
+        //     })
+        // }
+
         // loop over checkbox elements, check for state changes,
         // send new state into to controller
         const checkboxes = document.querySelectorAll('.check-completed');
@@ -122,14 +158,15 @@
                     headers: {'Content-Type': 'application/json'}
                 })
                 .then(function() {
-                document.getElementById('error').className = 'hidden';
+                    document.getElementById('error').className = 'hidden';
                 })
                 .catch(function() {
-                document.getElementById('error').className = '';
+                    document.getElementById('error').className = '';
                 })
             }
         }
-        // loop over X button elements, listen for click,
+
+        // loop over delete button elements, listen for click,
         // tell controller which item to delete
         const buttons = document.querySelectorAll('.delete-button');
         for (let i=0; i < buttons.length; i++) {
@@ -139,10 +176,12 @@
                 const todoId = e.target.dataset['id'];
                 fetch('/todos/' + todoId + '/delete', {method: 'DELETE'})
                 .then(function() {
-                document.getElementById('error').className = 'hidden';
+                    // remove item from view as well 
+                    e.target.parentElement.remove();
+                    document.getElementById('error').className = 'hidden';
                 })
                 .catch(function() {
-                document.getElementById('error').className = '';
+                    document.getElementById('error').className = '';
                 })
             }
         }

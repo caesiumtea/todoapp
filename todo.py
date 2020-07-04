@@ -12,8 +12,6 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # create a class to hold our todo objects and define what fields it will have
-
-
 class Todo(db.Model):
     __tablename__ = "todos"  # overwrite default table name, which would be todo
     id = db.Column(db.Integer, primary_key=True)
@@ -27,17 +25,13 @@ class Todo(db.Model):
 # no longer using db.create_all() here now that migrations are set up
 
 # route handler for index (root) page of site
-
-
-@app.route("/")
+@app.route("/", methods=["GET", "POST", "DELETE"])
 def index():
     # render_template uses a template engine to pass the data to the view
     # and have it dynamically populate the index page
     return render_template("index.html", data=Todo.query.order_by('id').all())
 
 # route handler for when user creates a new todo
-
-
 @app.route("/todos/create", methods=["POST"])
 def create_todo():
     # must define response here so that it persists after closing session
@@ -48,10 +42,13 @@ def create_todo():
         # add to response so it can be passed back to view, and finally
         # persist new object to database
         newinfo = request.get_json()["info"]
-        newtodo = Todo(info=newinfo)
-        response['info'] = newtodo.info
+        newtodo = Todo(info=newinfo, completed=False)
         db.session.add(newtodo)
         db.session.commit()
+        #populate the response body
+        response["id"] = newtodo.id
+        response["info"] = newtodo.info
+        response["completed"] = newtodo.completed
     except:
         # if the commit doesn't succeed, print error and roll back session
         # to protect against unexpected database states
@@ -65,7 +62,7 @@ def create_todo():
     else:
         # if commit succeeded, then return JSON that the view
         # can use to update list with new item
-        response['id'] = Todo.query.order_by(db.desc('id')).first().id
+        #response['id'] = Todo.query.order_by(db.desc('id')).first().id
         return jsonify(response)
 
 
@@ -104,4 +101,5 @@ def delete(todo_id):
     if error:
         abort(400)
     else:
-        return redirect(url_for("index"))
+        return redirect(url_for("index"), 
+            response=jsonify({'success': True}))
