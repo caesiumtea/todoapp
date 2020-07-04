@@ -87,3 +87,21 @@ def set_complete(todo_id):
         abort(400)
     else:
         return redirect(url_for("index"))
+
+@app.route("/todos/<todo_id>/delete", methods=["DELETE"])
+def delete(todo_id):
+    error = False
+    try:
+        item = Todo.query.get(todo_id)
+        db.session.delete(item)
+        db.session.commit()
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+    if error:
+        abort(400)
+    else:
+        return redirect(url_for("index"))

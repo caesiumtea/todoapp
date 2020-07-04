@@ -14,13 +14,26 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            width: fit-content;
+        }
+        li {
+            padding: 2px;
+        }
+        li button {
+            -webkit-appearance: none;
+            border: none;
+            outline: none;
+            color: red;
+            background: none;
+            float: right;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <!--create new list item-->
     <form id="form">
-        <label for="info">Add New To-Do</label>
+        <label for="info">Add New To-Do</label><br>
         <input type="text" id="info" name="info">
         <input type="submit" value="Create">
     </form>
@@ -29,6 +42,7 @@
     <div id="error" class="hidden">Problem creating new to-do item!</div>
 
     <!--display current to-do list-->
+    <p>Current To-Do Items</p>
     <ul id="todos">
         <!--iterate over the list of data we passed in from index(), 
             displaying each item's status and info attribute and tagging
@@ -39,6 +53,7 @@
             <input class="check-completed" data-id="{{ d.id }}"
                 type="checkbox" {% if d.completed %} checked {% endif %}>
             {{ d.info }}
+            <button class="delete-button" data-id="{{ d.id }}">X</button>
         </li>
         {% endfor %}
     </ul>
@@ -106,6 +121,23 @@
                     body: JSON.stringify({'completed': newCompleted}),
                     headers: {'Content-Type': 'application/json'}
                 })
+                .then(function() {
+                document.getElementById('error').className = 'hidden';
+                })
+                .catch(function() {
+                document.getElementById('error').className = '';
+                })
+            }
+        }
+        // loop over X button elements, listen for click,
+        // tell controller which item to delete
+        const buttons = document.querySelectorAll('.delete-button');
+        for (let i=0; i < buttons.length; i++) {
+            const button = buttons[i];
+            button.onclick = function(e) {
+                console.log('event', e);
+                const todoId = e.target.dataset['id'];
+                fetch('/todos/' + todoId + '/delete', {method: 'DELETE'})
                 .then(function() {
                 document.getElementById('error').className = 'hidden';
                 })
